@@ -1,5 +1,8 @@
 package basic.siemens.awesomedev.com.siemensapplication;
 
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -12,12 +15,20 @@ public class RetrofitHelper {
     private static ServerService mService = null;
 
     static {
-        Retrofit retrofit = new Retrofit.Builder().baseUrl("http://192.168.43.154:8000").addConverterFactory(GsonConverterFactory.create()).build();
+        final OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .readTimeout(60, TimeUnit.SECONDS)
+                .connectTimeout(60, TimeUnit.SECONDS)
+                .build();
+
+        Retrofit retrofit = new Retrofit.Builder().baseUrl("http://192.168.43.192:8000")
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(okHttpClient)
+                .build();
         mService = retrofit.create(ServerService.class);
     }
 
 
-    public static ServerService getInstance(){
+    public static ServerService getInstance() {
         return mService;
     }
 

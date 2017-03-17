@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
                     public void onResponse(Call<List<Caption>> call, Response<List<Caption>> response) {
                         Toast.makeText(MainActivity.this, "Response Received", Toast.LENGTH_SHORT).show();
                         for (Caption caption : response.body()){
-                            Log.d(TAG, "onResponse: " + caption.getCaption() + " Confidence Score : " + Float.toString(caption.getConfidenceScore()));
+                            Log.d(TAG, "onResponse: " + caption.getCaption() + " Confidence Score : " + caption.getConfidenceScore());
                         }
                     }
 
