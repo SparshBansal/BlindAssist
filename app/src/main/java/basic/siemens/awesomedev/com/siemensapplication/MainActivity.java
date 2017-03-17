@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.speech.tts.TextToSpeech;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -31,6 +33,7 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
 
     private Button bPhotoButton = null;
     private TextView tvResultView = null;
+    private TextToSpeech ttp = null;
 
 
     // Request Code for Camera Intent
@@ -52,6 +55,15 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
 
         bPhotoButton.setOnClickListener(this);
 
+        ttp = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if(status != TextToSpeech.ERROR){
+                    ttp.setLanguage(Locale.ENGLISH);
+                }
+            }
+        });
+
     }
 
 
@@ -61,7 +73,12 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
     }
 
     @Override
-    protected void onPause() {
+    protected void onPause()
+    {
+        if(ttp != null){
+            ttp.stop();
+            ttp.shutdown();
+        }
         super.onPause();
     }
 
@@ -137,6 +154,15 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
         Log.d(TAG, "createImageFile: " + mCurrentPhotoPath);
         return image;
 
+    }
+
+    public void toSpeech(String text){
+        ttp.speak(text, TextToSpeech.QUEUE_FLUSH, null);
+    }
+
+    public void faceVerify(){
+        //key1 : 89e91c7e4bb7435b906535d27645d128
+        //key2 : b551ef6eb1a74aaa8dd7c25dda203a9b
     }
 
 }
