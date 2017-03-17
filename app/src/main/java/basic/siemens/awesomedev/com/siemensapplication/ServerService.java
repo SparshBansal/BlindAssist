@@ -2,11 +2,15 @@ package basic.siemens.awesomedev.com.siemensapplication;
 
 import java.util.List;
 
+import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
+import retrofit2.http.POST;
 import retrofit2.http.Part;
 
 /**
@@ -16,10 +20,11 @@ import retrofit2.http.Part;
 public interface ServerService {
 
     @Multipart
-    @GET("/base/captions")
-    Call<List<Caption>> getCaptions(@Part("image")RequestBody photo);
+    @POST("/base/getImageCaption/")
+    Call<List<Caption>> getCaptions(@Part MultipartBody.Part photo);
 
-    @GET("/base/ping")
-    Call<String> ping(@Field("ping")String ping);
+    @FormUrlEncoded
+    @POST("/base/ping/")
+    Call<Ping> ping(@Field("ping") String ping);
 
 }

@@ -20,6 +20,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -69,22 +72,22 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
     public void onClick(View v) {
         if (v.getId() == R.id.b_take_photo) {
             // Launch camera intent
-            // dispatchTakePictureIntent();
+             dispatchTakePictureIntent();
             // Try to ping the server
-            Call<String> call = RetrofitHelper.getInstance().ping("Hello");
-            call.enqueue(new Callback<String>() {
+            /*Call<Ping> call = RetrofitHelper.getInstance().ping("Hello");
+            call.enqueue(new Callback<Ping>() {
                 @Override
-                public void onResponse(Call<String> call, Response<String> response) {
+                public void onResponse(Call<Ping> call, Response<Ping> response) {
                     Log.d(TAG, "onResponse: " + response.body());
-                    Toast.makeText(MainActivity.this, response.body() , Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, response.body().getStatusCode() , Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
-                public void onFailure(Call<String> call, Throwable t) {
-                    Log.d(TAG, "onFailure:  Some fuckin error happened Shit!!!");
+                public void onFailure(Call<Ping> call, Throwable t) {
+                    Log.d(TAG, "onFailure:  Some fucking error happened Shit!!!");
+                    Log.d(TAG, t.getMessage());
                 }
-            });
-
+            });*/
         }
     }
 
@@ -96,7 +99,34 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
         switch (requestCode) {
             case REQUEST_CAPTURE_IMAGE:
                 Toast.makeText(this, "Captured the image", Toast.LENGTH_SHORT).show();
+                File image = new File(mCurrentPhotoPath);
 
+                if (image.exists()){
+                    Toast.makeText(this, "File toh exist karti hai", Toast.LENGTH_SHORT).show();
+                }
+
+                RequestBody requestFile =
+                        RequestBody.create(MediaType.parse("multipart/form-data"), image);
+
+                MultipartBody.Part body =
+                        MultipartBody.Part.createFormData("image", image.getName(), requestFile);
+
+                Call<List<Caption>> call = RetrofitHelper.getInstance().getCaptions(body);
+                call.enqueue(new Callback<List<Caption>>() {
+                    @Override
+                    public void onResponse(Call<List<Caption>> call, Response<List<Caption>> response) {
+                        Toast.makeText(MainActivity.this, "Response Received", Toast.LENGTH_SHORT).show();
+                        for (Caption caption : response.body()){
+                            Log.d(TAG, "onResponse: " + caption.getCaption() + " Confidence Score : " + Float.toString(caption.getConfidenceScore()));
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<Caption>> call, Throwable t) {
+                        Toast.makeText(MainActivity.this, "Some fucking error occurred", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "onFailure: " + t.getMessage());
+                    }
+                });
                 break;
         }
     }
