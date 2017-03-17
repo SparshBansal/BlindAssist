@@ -10,4 +10,18 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="basic.siemens.awesomedev.com.siemensapplication.FaceRecognitionActivity">
 
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Name.."
+        android:id="@+id/et_name"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/et_name"
+        android:text="Select Images for person"
+        android:id="@+id/bt_select_image"/>
+
+
 </RelativeLayout>
