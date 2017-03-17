@@ -65,10 +65,6 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
     private TextView tvResultView = null;
 
 
-    // Request Code for Camera Intent
-    private static final int REQUEST_CAPTURE_IMAGE = 1000;
-    private static final int REQUEST_RESOLVE_CONNECTION = 1005;
-
     // Path for the current photo
     private String mCurrentPhotoPath = null;
     private Uri mCurrentPhotoUri = null;
