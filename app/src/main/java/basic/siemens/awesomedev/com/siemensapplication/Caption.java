@@ -7,13 +7,13 @@ package basic.siemens.awesomedev.com.siemensapplication;
 public class Caption {
 
     public String caption;
-    public String confidenceScore;
+    public int confidenceScore;
 
     public String getCaption() {
         return caption;
     }
 
-    public String getConfidenceScore() {
+    public int getConfidenceScore() {
         return confidenceScore;
     }
 
@@ -21,7 +21,7 @@ public class Caption {
         this.caption = caption;
     }
 
-    public void setConfidenceScore(String confidenceScore) {
+    public void setConfidenceScore(int confidenceScore) {
         this.confidenceScore = confidenceScore;
     }
 }

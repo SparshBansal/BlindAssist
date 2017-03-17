@@ -30,6 +30,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
@@ -56,11 +58,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity implements  View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final String PREF_ACCOUNT_NAME = "accountName";
-
 
     private TextView tvResultView = null;
 
@@ -93,7 +93,6 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
     private HandlerThread mBackgroundThread;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,7 +102,30 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
         textureView = (TextureView) findViewById(R.id.texture_view);
         tvResultView = (TextView) findViewById(R.id.tv_result_caption);
 
-        textureView.setOnClickListener(this);
+        textureView.setOnTouchListener(new View.OnTouchListener() {
+
+            private GestureDetector gestureDetector = new GestureDetector(MainActivity.this, new GestureDetector.SimpleOnGestureListener() {
+
+                @Override
+                public boolean onDoubleTap(MotionEvent e) {
+                    Intent intent = new Intent(MainActivity.this, FaceRecognitionActivity.class);
+                    startActivity(intent);
+                    return super.onDoubleTap(e);
+                }
+
+                @Override
+                public boolean onSingleTapConfirmed(MotionEvent e) {
+                    takePicture();
+                    return super.onSingleTapConfirmed(e);
+                }
+            });
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                gestureDetector.onTouchEvent(event);
+                return true;
+            }
+        });
     }
 
 
@@ -176,15 +198,6 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
         }
     };
 
-    final CameraCaptureSession.CaptureCallback captureCallbackListener = new CameraCaptureSession.CaptureCallback() {
-        @Override
-        public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
-            super.onCaptureCompleted(session, request, result);
-            Toast.makeText(MainActivity.this, "Saved:" + file, Toast.LENGTH_SHORT).show();
-            createCameraPreview();
-        }
-    };
-
     protected void startBackgroundThread() {
         mBackgroundThread = new HandlerThread("Camera Background");
         mBackgroundThread.start();
@@ -230,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
             // Orientation
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
-            final File file = new File(Environment.getExternalStorageDirectory() + "/pic.jpg");
+            final File file = createImageFile();
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
@@ -269,10 +282,12 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
                 @Override
                 public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
-                    Toast.makeText(MainActivity.this, "Saved:" + file, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Saved:" + file.getName(), Toast.LENGTH_SHORT).show();
+                    sendToServer(file.getAbsolutePath());
                     createCameraPreview();
                 }
             };
+
             cameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(CameraCaptureSession session) {
@@ -288,6 +303,8 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
                 }
             }, mBackgroundHandler);
         } catch (CameraAccessException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -366,16 +383,51 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_CAMERA_PERMISSION) {
-            if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
-                // close the app
-                Toast.makeText(MainActivity.this, "Sorry!!!, you can't use this app without granting permission", Toast.LENGTH_LONG).show();
-                finish();
-            }
+    private void sendToServer(String imagePath) {
+        File image = new File(imagePath);
+
+        if (image.exists()) {
+            Toast.makeText(this, "File toh exist karti hai", Toast.LENGTH_SHORT).show();
         }
+        else{
+            Toast.makeText(this, "File nahi mili", Toast.LENGTH_SHORT).show();
+        }
+
+        RequestBody requestFile =
+                RequestBody.create(MediaType.parse("multipart/form-data"), image);
+
+        MultipartBody.Part body =
+                MultipartBody.Part.createFormData("image", image.getName(), requestFile);
+
+        Call<List<Caption>> call = RetrofitHelper.getInstance().getCaptions(body);
+        call.enqueue(new Callback<List<Caption>>() {
+            @Override
+            public void onResponse(Call<List<Caption>> call, Response<List<Caption>> response) {
+                Toast.makeText(MainActivity.this, "Response Received", Toast.LENGTH_SHORT).show();
+                for (Caption caption : response.body()) {
+                    Log.d(TAG, "onResponse: " + caption.getCaption() + " Confidence Score : " + caption.getConfidenceScore());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Caption>> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "Some fucking error occurred", Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "onFailure: " + t.getMessage());
+            }
+        });
     }
 
+    private File createImageFile() throws IOException {
+
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFilename = "JPEG_" + timestamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(imageFilename, ".jpg", storageDir);
+
+        // Get the path
+        mCurrentPhotoPath = image.getAbsolutePath();
+        Log.d(TAG, "createImageFile: " + mCurrentPhotoPath);
+        return image;
+    }
 
 }
