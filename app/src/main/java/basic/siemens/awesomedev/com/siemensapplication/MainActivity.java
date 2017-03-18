@@ -4,6 +4,8 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -301,7 +303,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     super.onCaptureCompleted(session, request, result);
                     textureView.setOnTouchListener(mListener);
                     Toast.makeText(MainActivity.this, "Saved:" + file.getName(), Toast.LENGTH_SHORT).show();
-                    sendToServer(file.getAbsolutePath());
+
+                    // Read the file
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inSampleSize = 8;
+                    Bitmap scaledImage = BitmapFactory.decodeFile(file.getAbsolutePath(),options);
+                    File scaledFile = file;
+
+                    try {
+                        scaledFile = createImageFile();
+                        FileOutputStream fout = new FileOutputStream(scaledFile);
+                        scaledImage.compress(Bitmap.CompressFormat.JPEG,85,fout);
+                        fout.flush();
+                        fout.close();
+                        mCurrentPhotoPath = scaledFile.getAbsolutePath();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    sendToServer(scaledFile.getAbsolutePath());
                     createCameraPreview();
                 }
             };
