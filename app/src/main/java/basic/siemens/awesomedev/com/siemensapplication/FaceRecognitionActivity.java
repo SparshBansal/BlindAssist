@@ -4,7 +4,9 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -13,7 +15,11 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -64,10 +70,27 @@ public class FaceRecognitionActivity extends AppCompatActivity implements View.O
                         for (int i = 0; i < imagesPathList.size(); i++) {
 
                             File file = new File(imagesPathList.get(i));
+                            // Read the file
+                            BitmapFactory.Options options = new BitmapFactory.Options();
+                            options.inSampleSize = 4;
+                            Bitmap scaledImage = BitmapFactory.decodeFile(file.getAbsolutePath(),options);
+                            File scaledFile = file;
+
+                            try {
+                                scaledFile = createImageFile();
+                                FileOutputStream fout = new FileOutputStream(scaledFile);
+                                scaledImage.compress(Bitmap.CompressFormat.JPEG,85,fout);
+                                fout.flush();
+                                fout.close();
+
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
                             RequestBody requestFile =
-                                    RequestBody.create(MediaType.parse("multipart/form-data"), file);
+                                    RequestBody.create(MediaType.parse("multipart/form-data"), scaledFile);
                             MultipartBody.Part body =
-                                    MultipartBody.Part.createFormData("image", file.getName(), requestFile);
+                                    MultipartBody.Part.createFormData("image", scaledFile.getName(), requestFile);
 
                             RequestBody name = RequestBody.create(MediaType.parse("multipart/form-data"), et_name_view.getText().toString());
                             Call<Ping> call = RetrofitHelper.getInstance().uploadImage(body, name);
@@ -123,6 +146,16 @@ public class FaceRecognitionActivity extends AppCompatActivity implements View.O
             }
         }
 
+    }
+
+    private File createImageFile() throws IOException {
+
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFilename = "JPEG_" + timestamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(imageFilename, ".jpg", storageDir);
+
+        return image;
     }
 
 }

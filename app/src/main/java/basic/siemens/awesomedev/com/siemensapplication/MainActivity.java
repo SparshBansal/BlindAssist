@@ -306,7 +306,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     // Read the file
                     BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.inSampleSize = 8;
+                    options.inSampleSize = 4;
                     Bitmap scaledImage = BitmapFactory.decodeFile(file.getAbsolutePath(),options);
                     File scaledFile = file;
 
