@@ -49,6 +49,9 @@ import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -415,9 +418,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onResponse(Call<List<Caption>> call, Response<List<Caption>> response) {
                 Toast.makeText(MainActivity.this, "Response Received", Toast.LENGTH_SHORT).show();
+                Collections.sort(response.body(), new Comparator<Caption>() {
+                    @Override
+                    public int compare(Caption o1, Caption o2) {
+                        return o2.getConfidenceScore()-o1.getConfidenceScore();
+                    }
+                });
+                String responseString = "There is a ";
                 for (Caption caption : response.body()) {
                     Log.d(TAG, "onResponse: " + caption.getCaption() + " Confidence Score : " + caption.getConfidenceScore());
+                    responseString = responseString + caption.getCaption() + " ";
                 }
+                responseString = responseString + " in front of you";
+                toSpeech(responseString);
             }
 
             @Override
