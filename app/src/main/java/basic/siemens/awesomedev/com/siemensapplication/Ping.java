@@ -6,6 +6,7 @@ package basic.siemens.awesomedev.com.siemensapplication;
 
 public class Ping {
     public String statusCode;
+    public String message;
 
     public String getStatusCode() {
         return statusCode;
@@ -13,5 +14,13 @@ public class Ping {
 
     public void setStatusCode(String statusCode) {
         this.statusCode = statusCode;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

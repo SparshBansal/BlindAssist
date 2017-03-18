@@ -429,7 +429,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Log.d(TAG, "onResponse: " + caption.getCaption() + " Confidence Score : " + caption.getConfidenceScore());
                     responseString = responseString + caption.getCaption() + " ";
                 }
-                responseString = responseString + " in front of you";
+                responseString = responseString + "in front of you";
+                tvResultView.setText(responseString);
                 toSpeech(responseString);
             }
 

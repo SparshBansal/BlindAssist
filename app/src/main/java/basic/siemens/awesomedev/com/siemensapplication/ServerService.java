@@ -27,4 +27,8 @@ public interface ServerService {
     @POST("/base/ping/")
     Call<Ping> ping(@Field("ping") String ping);
 
+
+    @Multipart
+    @POST("/base/uploadImage/")
+    Call<Ping> uploadImage(@Part MultipartBody.Part photo,@Part("name") RequestBody name);
 }

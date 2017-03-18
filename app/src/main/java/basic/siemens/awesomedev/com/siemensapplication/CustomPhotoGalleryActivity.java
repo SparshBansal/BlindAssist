@@ -45,7 +45,7 @@ public class CustomPhotoGalleryActivity extends Activity {
         btnSelect= (Button) findViewById(R.id.btnSelect);
 
         final String[] columns = { MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID };
-        final String orderBy = MediaStore.Images.Media._ID;
+        final String orderBy = MediaStore.Images.Media.DATE_TAKEN + " desc";
         @SuppressWarnings("deprecation")
         Cursor imagecursor = managedQuery(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, columns, null, null, orderBy);
         int image_column_index = imagecursor.getColumnIndex(MediaStore.Images.Media._ID);
@@ -109,7 +109,10 @@ public class CustomPhotoGalleryActivity extends Activity {
 
     private void setBitmap(final ImageView iv, final int id) {
 
-        new AsyncTask<Void, Void, Bitmap>() {
+        Bitmap bmp = MediaStore.Images.Thumbnails.getThumbnail(getApplicationContext().getContentResolver(), id, MediaStore.Images.Thumbnails.MICRO_KIND, null);
+        iv.setImageBitmap(bmp);
+
+        /* new AsyncTask<Void, Void, Bitmap>() {
 
             @Override
             protected Bitmap doInBackground(Void... params) {
@@ -121,7 +124,7 @@ public class CustomPhotoGalleryActivity extends Activity {
                 super.onPostExecute(result);
                 iv.setImageBitmap(result);
             }
-        }.execute();
+        }.execute();*/
     }
 
 

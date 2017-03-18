@@ -20,7 +20,7 @@ public class RetrofitHelper {
                 .connectTimeout(60, TimeUnit.SECONDS)
                 .build();
 
-        Retrofit retrofit = new Retrofit.Builder().baseUrl("http://192.168.43.192:8000")
+        Retrofit retrofit = new Retrofit.Builder().baseUrl("http://192.168.43.166:8000")
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(okHttpClient)
                 .build();
