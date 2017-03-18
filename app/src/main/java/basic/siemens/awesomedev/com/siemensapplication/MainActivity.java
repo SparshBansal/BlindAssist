@@ -55,6 +55,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -98,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Handler mBackgroundHandler;
     private HandlerThread mBackgroundThread;
 
-
+    View.OnTouchListener mListener = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,8 +109,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         textureView = (TextureView) findViewById(R.id.texture_view);
         tvResultView = (TextView) findViewById(R.id.tv_result_caption);
 
-        textureView.setOnTouchListener(new View.OnTouchListener() {
-
+        mListener = new View.OnTouchListener() {
             private GestureDetector gestureDetector = new GestureDetector(MainActivity.this, new GestureDetector.SimpleOnGestureListener() {
 
                 @Override
@@ -131,7 +131,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 gestureDetector.onTouchEvent(event);
                 return true;
             }
-        });
+        };
+
+        textureView.setOnTouchListener(mListener);
         ttp = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -230,6 +232,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     protected void takePicture() {
+        textureView.setOnTouchListener(null);
         if (null == cameraDevice) {
             Log.e(TAG, "cameraDevice is null");
             return;
@@ -296,6 +299,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
+                    textureView.setOnTouchListener(mListener);
                     Toast.makeText(MainActivity.this, "Saved:" + file.getName(), Toast.LENGTH_SHORT).show();
                     sendToServer(file.getAbsolutePath());
                     createCameraPreview();
@@ -401,10 +405,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         File image = new File(imagePath);
 
         if (image.exists()) {
-            Toast.makeText(this, "File toh exist karti hai", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "sendToServer: file exists");
         }
         else{
-            Toast.makeText(this, "File nahi mili", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "sendToServer: file does not exist");
         }
 
         RequestBody requestFile =
@@ -424,19 +428,60 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         return o2.getConfidenceScore()-o1.getConfidenceScore();
                     }
                 });
-                String responseString = "There is a ";
-                for (Caption caption : response.body()) {
-                    Log.d(TAG, "onResponse: " + caption.getCaption() + " Confidence Score : " + caption.getConfidenceScore());
-                    responseString = responseString + caption.getCaption() + " ";
+
+                String objectString = " detected";
+                String personString = " identified";
+
+                ArrayList<Caption> personList = new ArrayList<Caption>();
+                ArrayList<Caption> objectList = new ArrayList<Caption>();
+
+                for (int i=0 ; i < response.body().size() ; i++){
+                    Caption caption = response.body().get(i);
+
+                    if (caption.getConfidenceScore() == 100)
+                        personList.add(response.body().get(i));
+                    else
+                        objectList.add(response.body().get(i));
                 }
-                responseString = responseString + "in front of you";
-                tvResultView.setText(responseString);
+
+                if (personList.size() == 0){
+                    personString = "";
+                }
+                else{
+                    for (Caption person : personList){
+                        personString = person.getCaption() + ", " + personString;
+                    }
+                }
+
+                if (objectList.size() == 0){
+                    objectString = "";
+                }else{
+                    for (Caption object : objectList){
+                        objectString = object.getCaption() + ", " + objectString;
+                    }
+                }
+
+                String responseString = "";
+
+                if (!personString.equals("")){
+                    responseString = responseString + personString + "\n";
+                }
+
+                if (!objectString.equals("")){
+                    responseString = responseString + objectString;
+                }
+
+
+                if (personString.equals("") && objectString.equals("")) {
+                    responseString = "Sorry didn't catch that";
+                }
+
                 toSpeech(responseString);
+                tvResultView.setText(responseString);
             }
 
             @Override
             public void onFailure(Call<List<Caption>> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Some fucking error occurred", Toast.LENGTH_SHORT).show();
                 Log.d(TAG, "onFailure: " + t.getMessage());
             }
         });

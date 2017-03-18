@@ -79,13 +79,13 @@ public class FaceRecognitionActivity extends AppCompatActivity implements View.O
 
                                 @Override
                                 public void onFailure(Call<Ping> call, Throwable t) {
-                                    Toast.makeText(FaceRecognitionActivity.this, "Some fucking exception", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(FaceRecognitionActivity.this, "exception occurred", Toast.LENGTH_SHORT).show();
                                 }
                             });
                         }
 
                     } else {
-                        Toast.makeText(this, "Select atleeast one ", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Select at least one ", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     Toast.makeText(FaceRecognitionActivity.this, " no images are selected", Toast.LENGTH_SHORT).show();
@@ -111,7 +111,7 @@ public class FaceRecognitionActivity extends AppCompatActivity implements View.O
                     imagesPathList.add(imagesPath[i]);
                     BitmapFactory.Options options = new BitmapFactory.Options();
                     options.inSampleSize = 8;
-                    yourbitmap = BitmapFactory.decodeFile(imagesPath[i],optionsgit );
+                    yourbitmap = BitmapFactory.decodeFile(imagesPath[i],options );
                     ImageView imageView = new ImageView(this);
                     imageView.setImageBitmap(yourbitmap);
                     imageView.setAdjustViewBounds(true);
