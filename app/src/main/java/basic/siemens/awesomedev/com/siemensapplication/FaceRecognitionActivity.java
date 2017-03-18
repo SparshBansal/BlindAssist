@@ -111,7 +111,7 @@ public class FaceRecognitionActivity extends AppCompatActivity implements View.O
                     imagesPathList.add(imagesPath[i]);
                     BitmapFactory.Options options = new BitmapFactory.Options();
                     options.inSampleSize = 8;
-                    yourbitmap = BitmapFactory.decodeFile(imagesPath[i],optionsgit );
+                    yourbitmap = BitmapFactory.decodeFile(imagesPath[i],options );
                     ImageView imageView = new ImageView(this);
                     imageView.setImageBitmap(yourbitmap);
                     imageView.setAdjustViewBounds(true);

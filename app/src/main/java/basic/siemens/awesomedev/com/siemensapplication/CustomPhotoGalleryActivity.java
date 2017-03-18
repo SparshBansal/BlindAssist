@@ -8,6 +8,9 @@ import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,7 +25,7 @@ import android.widget.Toast;
 /**
  * Created by del on 3/18/2017.
  */
-public class CustomPhotoGalleryActivity extends Activity {
+public class CustomPhotoGalleryActivity extends Activity implements LoaderManager.LoaderCallbacks<Cursor>{
 
     private GridView grdImages;
     private Button btnSelect;
@@ -37,6 +40,10 @@ public class CustomPhotoGalleryActivity extends Activity {
     /**
      * Overrides methods
      */
+    final String[] columns = { MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID };
+    final String orderBy = MediaStore.Images.Media.DATE_TAKEN + " desc";
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,8 +51,6 @@ public class CustomPhotoGalleryActivity extends Activity {
         grdImages= (GridView) findViewById(R.id.grdImages);
         btnSelect= (Button) findViewById(R.id.btnSelect);
 
-        final String[] columns = { MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID };
-        final String orderBy = MediaStore.Images.Media.DATE_TAKEN + " desc";
         @SuppressWarnings("deprecation")
         Cursor imagecursor = managedQuery(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, columns, null, null, orderBy);
         int image_column_index = imagecursor.getColumnIndex(MediaStore.Images.Media._ID);
@@ -125,6 +130,21 @@ public class CustomPhotoGalleryActivity extends Activity {
                 iv.setImageBitmap(result);
             }
         }.execute();*/
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new CursorLoader(this,MediaStore.Images.Media.EXTERNAL_CONTENT_URI, columns, null, null, orderBy);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
     }
 
 
